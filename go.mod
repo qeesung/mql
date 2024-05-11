@@ -1,4 +1,4 @@
-module github.com/hashicorp/mql
+module github.com/qeesung/mql
 
 go 1.20
 
