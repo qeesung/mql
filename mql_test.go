@@ -211,6 +211,41 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:  "success-WithMultiConverters",
+			query: "(name = \"alice\" and email=\"eve@example.com\") or age > 21",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithConverter(
+					"name",
+					func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
+						return &mql.WhereClause{
+							// intentionally not the correct condition and
+							// args, but this makes verifying the test
+							// easier.
+							Condition: fmt.Sprintf("success-WithConverter: %s%s?", columnName, comparisonOp),
+							Args:      []any{"success-WithConverter: alice"},
+						}, nil
+					},
+				),
+				mql.WithConverter(
+					"email",
+					func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
+						return &mql.WhereClause{
+							// intentionally not the correct condition and
+							// args, but this makes verifying the test
+							// easier.
+							Condition: fmt.Sprintf("success-WithConverter: %s%s?", columnName, comparisonOp),
+							Args:      []any{"success-WithConverter: email=\"eva@example.com\""},
+						}, nil
+					},
+				),
+			},
+			want: &mql.WhereClause{
+				Condition: "((success-WithConverter: name=? and success-WithConverter: email=?) or age>?)",
+				Args:      []any{"success-WithConverter: alice", "success-WithConverter: email=\"eva@example.com\"", 21},
+			},
+		},
+		{
 			name:            "err-ignored-field-used-in-query",
 			query:           "email=\"eve@example.com\" or name=\"alice\"",
 			model:           &testModel{},
